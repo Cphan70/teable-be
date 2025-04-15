@@ -1,0 +1,51 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String    @id @default(cuid())
+  name             String
+  password         String?
+  salt             String?
+  phone            String?   @unique
+  email            String    @unique
+  avatar           String?
+  isSystem         Boolean?  @map("is_system")
+  isAdmin          Boolean?  @map("is_admin")
+  notifyMeta       String?   @map("notify_meta")
+  lastSignTime     DateTime? @map("last_sign_time")
+  deactivatedTime  DateTime? @map("deactivated_time")
+  createdTime      DateTime  @default(now()) @map("created_time")
+  deletedTime      DateTime? @map("deleted_time")
+  lastModifiedTime DateTime? @updatedAt @map("last_modified_time")
+  refMeta          String?   @map("ref_meta")
+
+  accounts         Account[]
+  @@map("users")
+}
+
+
+model Account {
+  id               String    @id @default(cuid())
+  userId           String    @map("user_id")
+  type             String
+  provider         String
+  providerId       String    @map("provider_id")
+  createdTime      DateTime  @default(now()) @map("created_time")
+
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerId])
+  @@map("account")
+}
